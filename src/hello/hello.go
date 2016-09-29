@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"github.com/go-resty/resty"
+	"github.com/jung-kurt/gofpdf"
 )
 
 // JSONTime IS THE TIME
 type JSONTime struct { // this is a time struct
 	Time  string `json:"time"`
-	Epoch string `json:"millisecond_since_epoch"`
 	Date  string `json:"date"`
+	Epoch int    `json:"milliseconds_since_epoch"`
 }
 
 func main() {
@@ -19,14 +20,38 @@ func main() {
 
 	if err != nil {
 		fmt.Printf("\nError %v", err)
+		return
 	}
 
 	var timeVar JSONTime
-	fmt.Print(resp.String())
-	err2 := json.Unmarshal(resp.Body(), timeVar)
+
+	//	fmt.Print(typeOf(resp.Body()))
+	err2 := json.Unmarshal([]byte(resp.Body()), &timeVar)
 
 	if err2 != nil {
-		fmt.Printf("Unmarshalling error %v\n", err)
+		fmt.Printf("Unmarshalling error %v\n", err2)
 	}
-	fmt.Printf("Response Body: %+v", timeVar)
+	fmt.Printf("Time: %v\n", timeVar.Time)
+	fmt.Printf("Epoch: %v\n", timeVar.Epoch)
+	fmt.Printf("Date: %v\n", timeVar.Date)
+
+	writepdf(timeVar)
+}
+
+func typeOf(v interface{}) string {
+	return fmt.Sprintf("%T\n", v)
+}
+
+func writepdf(ti JSONTime) {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.SetFont("Arial", "B", 16)
+	pdf.Cell(40, 10, "Hello, world")
+	pdf.Cell(5, 20, fmt.Sprintf("Time is %v", ti.Time))
+	pdf.Cell(5, 30, fmt.Sprintf("Epoch is %v", ti.Epoch))
+	err := pdf.OutputFileAndClose("hello.pdf")
+	if err != nil {
+		fmt.Printf("Error opening PDF for output %v\n", err)
+	}
+
 }

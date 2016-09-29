@@ -25,3 +25,5 @@ _testmain.go
 
 bin/hello
 vendor/src
+
+hello.pdf
