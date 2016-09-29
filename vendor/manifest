@@ -1,0 +1,36 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/boombuler/barcode",
+			"repository": "https://github.com/boombuler/barcode",
+			"revision": "a8e04f9666515570057cf54b589dae226f2b4331",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/go-resty/resty",
+			"repository": "https://github.com/go-resty/resty",
+			"revision": "65d31487e2200bd9122c42f9aa011cfcb204e97f",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/jung-kurt/gofpdf",
+			"repository": "https://github.com/jung-kurt/gofpdf",
+			"revision": "93a9d1608a79dd7957cfe4c4a8270c2b82dca6bc",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/ruudk/golang-pdf417",
+			"repository": "https://github.com/ruudk/golang-pdf417",
+			"revision": "60b9437b150c3acd721fd7af34e6413de4021563",
+			"branch": "master"
+		},
+		{
+			"importpath": "golang.org/x/net/publicsuffix",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "ed0556cc888129faa06ff0ef3c65e0ce59c8b75c",
+			"branch": "master",
+			"path": "/publicsuffix"
+		}
+	]
+}
