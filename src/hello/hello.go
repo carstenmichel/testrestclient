@@ -44,6 +44,12 @@ func typeOf(v interface{}) string {
 
 func writepdf(ti JSONTime) {
 	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-15)
+		pdf.SetFont("Arial", "B", 10)
+		pdf.CellFormat(0, 10, fmt.Sprintf("Page %d /{nb}", pdf.PageNo()),
+			"", 0, "C", false, 0, "")
+	})
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
 	pdf.Cell(40, 10, "Hello, world")
