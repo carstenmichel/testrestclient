@@ -2,47 +2,87 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 
 	"github.com/go-resty/resty"
 	"github.com/jung-kurt/gofpdf"
 )
 
-// JSONTime IS THE TIME
-type JSONTime struct { // this is a time struct
-	Time  string `json:"time"`
-	Date  string `json:"date"`
-	Epoch int    `json:"milliseconds_since_epoch"`
+type CodeList struct {
+	CodeListName  string `json:"codeListName"`
+	VersionNumber int    `jdon:"versionNumber"`
+	Codes         []struct {
+		SenderCode   string `json:"senderCode"`
+		ReceiverCode string `json:"receiverCode"`
+		Description  string `json:"Description"`
+	} `json:"codes"`
 }
 
 func main() {
-	resp, err := resty.R().Get("http://time.jsontest.com/")
+	var username string
+	var pword string
+
+	var host string
+	var port string
+	var codelistname string
+	var codelistversion string
+	var allValuesSet bool = true
+
+	flag.StringVar(&username, "username", "", "specify username for login")
+	flag.StringVar(&pword, "password", "", "specify password for login")
+	flag.StringVar(&host, "host", "", "specify host")
+	flag.StringVar(&port, "port", "", "specify port")
+	flag.StringVar(&codelistname, "codelistname", "", "specify codelistname")
+	flag.StringVar(&codelistversion, "codelistversion", "", "specify codelistversion")
+
+	flag.Parse()
+	flag.VisitAll(func(arg1 *flag.Flag) {
+		if len(arg1.Value.String()) == 0 {
+			allValuesSet = false
+		}
+	})
+	if allValuesSet == false {
+		fmt.Printf("Please use with these Parameters\n")
+		flag.PrintDefaults()
+		return
+	}
+	var url string
+	url = fmt.Sprintf("http://%v:%v/B2BAPIs/svc/codelists/%v:||%v", host, port, codelistname, codelistversion)
+	fmt.Printf("Download from %v\n", url)
+	resp, err := resty.R().
+		SetBasicAuth(username, pword).
+		Get(url)
 
 	if err != nil {
 		fmt.Printf("\nError %v", err)
 		return
 	}
 
-	var timeVar JSONTime
+	var clVar CodeList
 
-	//	fmt.Print(typeOf(resp.Body()))
-	err2 := json.Unmarshal([]byte(resp.Body()), &timeVar)
+	err2 := json.Unmarshal([]byte(resp.Body()), &clVar)
 
 	if err2 != nil {
 		fmt.Printf("Unmarshalling error %v\n", err2)
 	}
-	fmt.Printf("Time: %v\n", timeVar.Time)
-	fmt.Printf("Epoch: %v\n", timeVar.Epoch)
-	fmt.Printf("Date: %v\n", timeVar.Date)
+	fmt.Printf("CodelistName : %v\n", clVar.CodeListName)
+	fmt.Printf("VersionNumber : %v\n", clVar.VersionNumber)
+	for zaehler := 0; zaehler < len(clVar.Codes); zaehler++ {
+		fmt.Printf("----------------------\n")
+		fmt.Printf("Sender : %v\n", clVar.Codes[zaehler].SenderCode)
+		fmt.Printf("Receiver : %v\n", clVar.Codes[zaehler].ReceiverCode)
+		fmt.Printf("Description : %v\n", clVar.Codes[zaehler].Description)
+	}
 
-	writepdf(timeVar)
+	writepdf(clVar)
 }
 
 func typeOf(v interface{}) string {
 	return fmt.Sprintf("%T\n", v)
 }
 
-func writepdf(ti JSONTime) {
+func writepdf(cl CodeList) {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.SetFooterFunc(func() {
 		pdf.SetY(-15)
@@ -52,9 +92,14 @@ func writepdf(ti JSONTime) {
 	})
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
-	pdf.Cell(40, 10, "Hello, world")
-	pdf.Cell(5, 20, fmt.Sprintf("Time is %v", ti.Time))
-	pdf.Cell(5, 30, fmt.Sprintf("Epoch is %v", ti.Epoch))
+	pdf.Cell(40, 10, fmt.Sprintf("Dump of codelist %v Version %v", cl.CodeListName, cl.VersionNumber))
+	pdf.Ln(10)
+	for zaehler := 0; zaehler < len(cl.Codes); zaehler++ {
+		pdf.Cell(50, 20, fmt.Sprintf("Sender : %v\n", cl.Codes[zaehler].SenderCode))
+		pdf.Cell(50, 20, fmt.Sprintf("Receiver : %v\n", cl.Codes[zaehler].ReceiverCode))
+		pdf.Cell(50, 20, fmt.Sprintf("Description : %v\n", cl.Codes[zaehler].Description))
+		pdf.Ln(10)
+	}
 	err := pdf.OutputFileAndClose("hello.pdf")
 	if err != nil {
 		fmt.Printf("Error opening PDF for output %v\n", err)
